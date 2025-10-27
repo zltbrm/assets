@@ -607,27 +607,37 @@
     console.log('✅ 战斗系统初始化完成');
   });
   
-  // 等待 Alpine.js 完全初始化后再创建全局函数
-  document.addEventListener('alpine:initialized', () => {
-    console.log('🎉 Alpine.js 已完全初始化，注册全局 startBattle 函数');
-    
-    // 创建全局战斗触发函数（供Phaser调用）
-    window.startBattle = function(enemyData) {
-      console.log('🌐 window.startBattle 被调用', enemyData);
-      const battleSystemElement = document.querySelector('[x-data="battleSystem"]');
-      if (battleSystemElement && battleSystemElement._x_dataStack) {
-        const component = battleSystemElement._x_dataStack[0];
-        if (component && component.startBattle) {
-          console.log('✅ 通过全局函数调用 startBattle');
-          component.startBattle(enemyData);
+  // 确保在 DOM 加载后再监听 Alpine 事件
+  function initStartBattle() {
+    // 监听 Alpine.js 初始化完成事件
+    document.addEventListener('alpine:initialized', () => {
+      console.log('🎉 Alpine.js 已完全初始化，注册全局 startBattle 函数');
+      
+      // 创建全局战斗触发函数（供Phaser调用）
+      window.startBattle = function(enemyData) {
+        console.log('🌐 window.startBattle 被调用', enemyData);
+        const battleSystemElement = document.querySelector('[x-data="battleSystem"]');
+        if (battleSystemElement && battleSystemElement._x_dataStack) {
+          const component = battleSystemElement._x_dataStack[0];
+          if (component && component.startBattle) {
+            console.log('✅ 通过全局函数调用 startBattle');
+            component.startBattle(enemyData);
+          } else {
+            console.error('❌ 组件或 startBattle 方法不存在');
+          }
         } else {
-          console.error('❌ 组件或 startBattle 方法不存在');
+          console.error('❌ 战斗系统元素未初始化');
         }
-      } else {
-        console.error('❌ 找不到战斗系统元素或数据栈');
-      }
-    };
-    
-    console.log('✅ 全局 startBattle 函数已注册');
-  });
+      };
+      
+      console.log('✅ 全局 startBattle 函数已注册');
+    });
+  }
+  
+  // 等待 DOM 加载完成后再注册事件监听器
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initStartBattle);
+  } else {
+    initStartBattle();
+  }
 })();
