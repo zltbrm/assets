@@ -607,13 +607,44 @@
   });
   
   // 全局函数：触发战斗（供Phaser调用）
+  // 立即定义，但会智能等待 Alpine 初始化
   window.startBattle = function(enemyData) {
     console.log('🌐 全局 startBattle 被调用');
-    const battleElement = document.querySelector('[x-data="battleSystem"]');
-    if (battleElement && battleElement.__x) {
-      Alpine.raw(battleElement.__x.$data).startBattle(enemyData);
-    } else {
-      console.error('❌ 找不到战斗系统元素');
+    
+    const tryStartBattle = () => {
+      const battleElement = document.querySelector('[x-data="battleSystem"]');
+      console.log('🔍 战斗元素:', battleElement);
+      console.log('🔍 __x 属性:', battleElement?.__x);
+      
+      if (battleElement && battleElement.__x) {
+        const battleData = Alpine.raw(battleElement.__x.$data);
+        console.log('✅ 找到战斗系统，调用 startBattle');
+        battleData.startBattle(enemyData);
+        return true;
+      }
+      return false;
+    };
+    
+    // 尝试立即启动
+    if (tryStartBattle()) {
+      return;
     }
+    
+    // 如果失败，等待 Alpine 初始化
+    console.log('⏳ 等待 Alpine 初始化...');
+    const checkInterval = setInterval(() => {
+      if (tryStartBattle()) {
+        clearInterval(checkInterval);
+        console.log('✅ Alpine 初始化完成，战斗启动成功');
+      }
+    }, 50); // 每50ms检查一次
+    
+    // 5秒后超时
+    setTimeout(() => {
+      clearInterval(checkInterval);
+      console.error('❌ 等待 Alpine 初始化超时');
+    }, 5000);
   };
+  
+  console.log('✅ 全局 startBattle 函数已注册');
 })();
