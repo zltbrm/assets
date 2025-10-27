@@ -22,16 +22,16 @@
                 layerName: '图块层 1',
                 spawnPoints: {
                     'default': { x: 12 * 32, y: 10 * 32 }, // 默认出生点
-                    'from_garage': { x: 20 * 32, y: 15 * 32 } // 从修车店返回的位置（修车店门口）
+                    'from_garage': { x: 24 * 16, y: 27 * 16 } // 从修车店返回的位置（tile 24, 27）
                 },
                 // 传送点配置：进入修车店的位置
                 portals: [
                     {
                         name: '修车店入口',
-                        x: 24, // tile坐标
+                        x: 24, // tile坐标（16px为单位）
                         y: 28, // tile坐标
                         width: 2, // 2个tile宽
-                        height: 1, // 1个tile高
+                        height: 2, // 2个tile高（更容易触发）
                         targetMap: '拉多镇-修车店',
                         targetSpawn: 'from_town',
                         message: '进入修车店'
