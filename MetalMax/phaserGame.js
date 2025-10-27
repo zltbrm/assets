@@ -631,15 +631,9 @@
         this.cameras.main.setZoom(1.5);  // 适当放大以获得更好的视觉效果
 
         // 调试：显示网格（可选，帮助查看对齐）
-        // this.add.grid(0, 0, map.widthInPixels, map.heightInPixels, 16, 16, 0x00ff00, 0.2, 0xff0000, 1).setOrigin(0);
+        // this.add.grid(0, 0, this.currentMap.widthInPixels, this.currentMap.heightInPixels, 16, 16, 0x00ff00, 0.2, 0xff0000, 1).setOrigin(0);
 
-        // ==================== 设置物理世界和相机边界 ====================
-        // 地图是50x50个tile（800x800px）
-        // 设置物理世界边界为整个地图
-        this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-
-        // 设置相机边界为整个地图
-        this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        // ==================== 物理世界和相机边界已在loadMap()中设置 ====================
 
         this.playerSpeed = 160;
 
