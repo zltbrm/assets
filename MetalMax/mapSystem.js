@@ -28,8 +28,8 @@
                 portals: [
                     {
                         name: '修车店入口',
-                        x: 20, // tile坐标
-                        y: 16, // tile坐标
+                        x: 24, // tile坐标
+                        y: 28, // tile坐标
                         width: 2, // 2个tile宽
                         height: 1, // 1个tile高
                         targetMap: '拉多镇-修车店',
