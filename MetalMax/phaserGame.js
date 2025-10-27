@@ -173,9 +173,10 @@
                 
                 // 根据出生点设置位置
                 if (spawnKey === 'from_garage') {
-                    // 从修车店出来的位置（修车店门口）
-                    spawnX = 20 * 32;
-                    spawnY = 15 * 32;
+                    // 从修车店出来的位置（修车店门口外面，tile 24, 27）
+                    // tile(24, 27) = 格子(12, 13.5) ≈ 像素(384, 432)
+                    spawnX = 24 * 16; // tile坐标转像素
+                    spawnY = 27 * 16;
                 } else {
                     // 默认出生点
                     spawnX = 12 * 32;
@@ -1299,17 +1300,17 @@
         const playerTileX = Math.floor(this.player.x / 16);
         const playerTileY = Math.floor(this.player.y / 16);
         
-        console.log(`🗺️ 检查传送点: 玩家位置 (${playerTileX}, ${playerTileY}), 地图: ${this.currentMapName}`);
+        console.log(`🗺️ 检查传送点: 玩家位置 tile(${playerTileX}, ${playerTileY}), 地图: ${this.currentMapName}`);
         
         // 定义传送点配置
         const portals = {
             '拉多镇': [
                 {
                     name: '修车店入口',
-                    x: 20, // tile坐标（16px为单位）
-                    y: 16,
+                    x: 24, // tile坐标（16px为单位）- 根据实际测试位置调整
+                    y: 28,
                     width: 2,
-                    height: 1,
+                    height: 2, // 增加高度，更容易触发
                     targetMap: '拉多镇-修车店',
                     targetSpawn: 'from_town'
                 }
@@ -1336,9 +1337,14 @@
         
         // 检查每个传送点
         for (const portal of currentPortals) {
-            if (playerTileX >= portal.x && playerTileX < portal.x + portal.width &&
-                playerTileY >= portal.y && playerTileY < portal.y + portal.height) {
-                console.log(`🚪 触发传送点: ${portal.name}`);
+            const inRangeX = playerTileX >= portal.x && playerTileX < portal.x + portal.width;
+            const inRangeY = playerTileY >= portal.y && playerTileY < portal.y + portal.height;
+            
+            console.log(`  📍 传送点 "${portal.name}": 范围 tile(${portal.x}-${portal.x + portal.width}, ${portal.y}-${portal.y + portal.height}) ` +
+                       `| X匹配:${inRangeX} Y匹配:${inRangeY}`);
+            
+            if (inRangeX && inRangeY) {
+                console.log(`🚪 ✅ 触发传送点: ${portal.name} → ${portal.targetMap}`);
                 
                 // 延迟一点再切换地图，让动画播放完成
                 this.time.delayedCall(100, () => {
