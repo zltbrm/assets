@@ -59,8 +59,8 @@
         // 从游戏菜单获取所有角色数据
         try {
           const menuElement = document.querySelector('[x-data="gameMenu"]');
-          if (menuElement && menuElement.__x) {
-            const menuData = Alpine.raw(menuElement.__x.$data);
+          if (menuElement && menuElement._x_dataStack) {
+            const menuData = menuElement._x_dataStack[0];
             
             // 复制所有角色到战斗队伍（深拷贝，避免直接修改原数据）
             this.playerParty = menuData.characters.map((char, index) => ({
@@ -345,8 +345,9 @@
         if (!this.waitingForInput || this.isProcessing || this.battleEnded) return;
         
         // 简化版：直接使用医疗包恢复当前角色
-        const menuData = Alpine.raw(document.querySelector('[x-data="gameMenu"]').__x.$data);
-        const healItem = menuData.inventory.find(item => item.type === 'healing' && item.count > 0);
+        const menuElement = document.querySelector('[x-data="gameMenu"]');
+        const menuData = menuElement && menuElement._x_dataStack ? menuElement._x_dataStack[0] : null;
+        const healItem = menuData ? menuData.inventory.find(item => item.type === 'healing' && item.count > 0) : null;
         
         if (healItem && this.currentUnit) {
           this.isProcessing = true;
@@ -464,8 +465,8 @@
         // 保存战斗后的HP到对应的角色
         try {
           const menuElement = document.querySelector('[x-data="gameMenu"]');
-          if (menuElement && menuElement.__x) {
-            const menuData = Alpine.raw(menuElement.__x.$data);
+          if (menuElement && menuElement._x_dataStack) {
+            const menuData = menuElement._x_dataStack[0];
             
             // 将战斗中的HP同步回角色数据
             for (let character of this.playerParty) {
@@ -606,45 +607,27 @@
     console.log('✅ 战斗系统初始化完成');
   });
   
-  // 全局函数：触发战斗（供Phaser调用）
-  // 立即定义，但会智能等待 Alpine 初始化
-  window.startBattle = function(enemyData) {
-    console.log('🌐 全局 startBattle 被调用');
+  // 等待 Alpine.js 完全初始化后再创建全局函数
+  document.addEventListener('alpine:initialized', () => {
+    console.log('🎉 Alpine.js 已完全初始化，注册全局 startBattle 函数');
     
-    const tryStartBattle = () => {
-      const battleElement = document.querySelector('[x-data="battleSystem"]');
-      console.log('🔍 战斗元素:', battleElement);
-      console.log('🔍 __x 属性:', battleElement?.__x);
-      
-      if (battleElement && battleElement.__x) {
-        const battleData = Alpine.raw(battleElement.__x.$data);
-        console.log('✅ 找到战斗系统，调用 startBattle');
-        battleData.startBattle(enemyData);
-        return true;
+    // 创建全局战斗触发函数（供Phaser调用）
+    window.startBattle = function(enemyData) {
+      console.log('🌐 window.startBattle 被调用', enemyData);
+      const battleSystemElement = document.querySelector('[x-data="battleSystem"]');
+      if (battleSystemElement && battleSystemElement._x_dataStack) {
+        const component = battleSystemElement._x_dataStack[0];
+        if (component && component.startBattle) {
+          console.log('✅ 通过全局函数调用 startBattle');
+          component.startBattle(enemyData);
+        } else {
+          console.error('❌ 组件或 startBattle 方法不存在');
+        }
+      } else {
+        console.error('❌ 找不到战斗系统元素或数据栈');
       }
-      return false;
     };
     
-    // 尝试立即启动
-    if (tryStartBattle()) {
-      return;
-    }
-    
-    // 如果失败，等待 Alpine 初始化
-    console.log('⏳ 等待 Alpine 初始化...');
-    const checkInterval = setInterval(() => {
-      if (tryStartBattle()) {
-        clearInterval(checkInterval);
-        console.log('✅ Alpine 初始化完成，战斗启动成功');
-      }
-    }, 50); // 每50ms检查一次
-    
-    // 5秒后超时
-    setTimeout(() => {
-      clearInterval(checkInterval);
-      console.error('❌ 等待 Alpine 初始化超时');
-    }, 5000);
-  };
-  
-  console.log('✅ 全局 startBattle 函数已注册');
+    console.log('✅ 全局 startBattle 函数已注册');
+  });
 })();
