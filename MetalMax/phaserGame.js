@@ -154,7 +154,30 @@
             
             // 重新设置碰撞（只有在玩家已创建时才执行）
             if (this.player && this.collisionLayer) {
+                // 清除所有旧的碰撞器
+                this.physics.world.colliders.destroy();
+                
+                // 重新添加玩家碰撞
                 this.physics.add.collider(this.player, this.collisionLayer);
+                
+                // 重新添加队友碰撞
+                if (this.followers && this.followers.length > 0) {
+                    this.followers.forEach(follower => {
+                        if (follower) {
+                            this.physics.add.collider(follower, this.collisionLayer);
+                        }
+                    });
+                }
+                
+                // 重新添加NPC碰撞
+                if (this.npcSystem && this.npcSystem.npcs) {
+                    this.npcSystem.npcs.forEach(npc => {
+                        if (npc.sprite) {
+                            this.physics.add.collider(npc.sprite, this.collisionLayer);
+                            this.physics.add.collider(this.player, npc.sprite);
+                        }
+                    });
+                }
             }
             
             console.log(`✅ 地图加载完成: ${mapName}`);
