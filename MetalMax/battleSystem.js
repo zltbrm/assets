@@ -2,6 +2,8 @@
 // Metal Max RPG - 战斗系统模块
 // 包含：回合制战斗、技能、特效、伤害计算
 
+console.log('📦 battleSystem.js 开始执行');
+
 // 等待Alpine.js加载完成
 document.addEventListener('alpine:init', () => {
   console.log('⚔️ 战斗系统初始化...');
@@ -604,6 +606,8 @@ document.addEventListener('alpine:init', () => {
   console.log('✅ 战斗系统初始化完成');
 });
 
+console.log('📦 battleSystem.js 注册了 alpine:init 监听器');
+
 // 等待 Alpine.js 完全初始化后再创建全局函数
 document.addEventListener('alpine:initialized', () => {
   console.log('🎉 Alpine.js 已完全初始化，注册全局 startBattle 函数');
@@ -627,3 +631,6 @@ document.addEventListener('alpine:initialized', () => {
   
   console.log('✅ 全局 startBattle 函数已注册');
 });
+
+console.log('📦 battleSystem.js 注册了 alpine:initialized 监听器');
+console.log('📦 battleSystem.js 执行完毕');
