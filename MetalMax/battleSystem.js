@@ -2,15 +2,12 @@
 // Metal Max RPG - 战斗系统模块
 // 包含：回合制战斗、技能、特效、伤害计算
 
-(function() {
-  'use strict';
+// 等待Alpine.js加载完成
+document.addEventListener('alpine:init', () => {
+  console.log('⚔️ 战斗系统初始化...');
   
-  // 等待Alpine.js加载完成
-  document.addEventListener('alpine:init', () => {
-    console.log('⚔️ 战斗系统初始化...');
-    
-    // ==================== Alpine Data: battleSystem ====================
-    Alpine.data('battleSystem', () => ({
+  // ==================== Alpine Data: battleSystem ====================
+  Alpine.data('battleSystem', () => ({
       inBattle: false,
       battleEnded: false,
       isProcessing: false,
@@ -599,45 +596,34 @@
         heal.style.left = `${x - 30}px`;
         heal.style.top = `${y - 30}px`;
         
-        battleArea.appendChild(heal);
-        setTimeout(() => heal.remove(), 1000);
+      battleArea.appendChild(heal);
+      setTimeout(() => heal.remove(), 1000);
+    }
+  }));
+  
+  console.log('✅ 战斗系统初始化完成');
+});
+
+// 等待 Alpine.js 完全初始化后再创建全局函数
+document.addEventListener('alpine:initialized', () => {
+  console.log('🎉 Alpine.js 已完全初始化，注册全局 startBattle 函数');
+  
+  // 创建全局战斗触发函数（供Phaser调用）
+  window.startBattle = function(enemyData) {
+    console.log('🌐 window.startBattle 被调用', enemyData);
+    const battleSystemElement = document.querySelector('[x-data="battleSystem"]');
+    if (battleSystemElement && battleSystemElement._x_dataStack) {
+      const component = battleSystemElement._x_dataStack[0];
+      if (component && component.startBattle) {
+        console.log('✅ 通过全局函数调用 startBattle');
+        component.startBattle(enemyData);
+      } else {
+        console.error('❌ 组件或 startBattle 方法不存在');
       }
-    }));
-    
-    console.log('✅ 战斗系统初始化完成');
-  });
+    } else {
+      console.error('❌ 战斗系统元素未初始化');
+    }
+  };
   
-  // 确保在 DOM 加载后再监听 Alpine 事件
-  function initStartBattle() {
-    // 监听 Alpine.js 初始化完成事件
-    document.addEventListener('alpine:initialized', () => {
-      console.log('🎉 Alpine.js 已完全初始化，注册全局 startBattle 函数');
-      
-      // 创建全局战斗触发函数（供Phaser调用）
-      window.startBattle = function(enemyData) {
-        console.log('🌐 window.startBattle 被调用', enemyData);
-        const battleSystemElement = document.querySelector('[x-data="battleSystem"]');
-        if (battleSystemElement && battleSystemElement._x_dataStack) {
-          const component = battleSystemElement._x_dataStack[0];
-          if (component && component.startBattle) {
-            console.log('✅ 通过全局函数调用 startBattle');
-            component.startBattle(enemyData);
-          } else {
-            console.error('❌ 组件或 startBattle 方法不存在');
-          }
-        } else {
-          console.error('❌ 战斗系统元素未初始化');
-        }
-      };
-      
-      console.log('✅ 全局 startBattle 函数已注册');
-    });
-  }
-  
-  // 等待 DOM 加载完成后再注册事件监听器
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initStartBattle);
-  } else {
-    initStartBattle();
-  }
-})();
+  console.log('✅ 全局 startBattle 函数已注册');
+});
