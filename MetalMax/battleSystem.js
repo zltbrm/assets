@@ -606,31 +606,4 @@ document.addEventListener('alpine:init', () => {
   console.log('✅ 战斗系统初始化完成');
 });
 
-console.log('📦 battleSystem.js 注册了 alpine:init 监听器');
-
-// 等待 Alpine.js 完全初始化后再创建全局函数
-document.addEventListener('alpine:initialized', () => {
-  console.log('🎉 Alpine.js 已完全初始化，注册全局 startBattle 函数');
-  
-  // 创建全局战斗触发函数（供Phaser调用）
-  window.startBattle = function(enemyData) {
-    console.log('🌐 window.startBattle 被调用', enemyData);
-    const battleSystemElement = document.querySelector('[x-data="battleSystem"]');
-    if (battleSystemElement && battleSystemElement._x_dataStack) {
-      const component = battleSystemElement._x_dataStack[0];
-      if (component && component.startBattle) {
-        console.log('✅ 通过全局函数调用 startBattle');
-        component.startBattle(enemyData);
-      } else {
-        console.error('❌ 组件或 startBattle 方法不存在');
-      }
-    } else {
-      console.error('❌ 战斗系统元素未初始化');
-    }
-  };
-  
-  console.log('✅ 全局 startBattle 函数已注册');
-});
-
-console.log('📦 battleSystem.js 注册了 alpine:initialized 监听器');
 console.log('📦 battleSystem.js 执行完毕');
