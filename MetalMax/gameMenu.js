@@ -105,16 +105,27 @@
       // 🚗 [战车系统已禁用] 多辆战车数据
       tanks: [],  // 暂时使用空数组
       
-      // 🚗 [战车系统已禁用] 兼容旧代码的getter
-      get player() {
-        return this.characters[this.currentCharacterIndex];
-      },
-      
-      get tank() {  // 🚗 [战车系统已禁用] 返回一个空对象避免错误
-        return { owned: false, name: '', hp: 0, maxHp: 0 };
-      },
-      
-      inventory: [
+        // 🚗 [战车系统已禁用] 兼容旧代码的getter
+        get player() {
+          return this.characters[this.currentCharacterIndex];
+        },
+        
+        get tank() {  // 🚗 [战车系统已禁用] 返回一个空对象避免错误
+          return { 
+            owned: false, 
+            name: '', 
+            hp: 0, 
+            maxHp: 0,
+            equipment: {
+              mainGun: '',
+              subGun: '',
+              engine: '',
+              armor: '',
+              chassis: '',
+              cUnit: ''
+            }
+          };
+        },      inventory: [
         { id: 1, name: '医疗包', icon: '💊', count: 3, type: 'healing', value: 30 },
         { id: 2, name: '炮弹', icon: '💣', count: 15, type: 'ammo', value: 5 },
         { id: 3, name: '修理工具', icon: '🔧', count: 2, type: 'repair', value: 50 },
