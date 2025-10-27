@@ -109,9 +109,14 @@
         this.loadMap = function(mapKey, mapName, layerName, spawnX, spawnY) {
             console.log(`🗺️ 正在加载地图: ${mapName}`);
             
-            // 销毁旧地图和图层
+            // 销毁旧地图和所有图层
+            if (this.mapLayers) {
+                this.mapLayers.forEach(layer => {
+                    if (layer) layer.destroy();
+                });
+                this.mapLayers = [];
+            }
             if (this.collisionLayer) {
-                this.collisionLayer.destroy();
                 this.collisionLayer = null;
             }
             if (this.currentMap) {
@@ -127,15 +132,28 @@
             const tileset2 = map.addTilesetImage('zzjbdt2 XII', 'tiles2');
             const tileset3 = map.addTilesetImage('重-装城镇1', 'tiles3');
             
-            // 创建图层（根据不同地图使用不同的图层名）
-            const layer = map.createLayer(layerName, [tileset1, tileset2, tileset3], 0, 0);
+            // 🗺️ 创建所有图层（按顺序加载，确保显示正确）
+            this.mapLayers = [];
             
-            if (layer) {
-                // 设置碰撞
-                layer.setCollisionFromCollisionGroup();
-                this.collisionLayer = layer;
-                
-                console.log('✅ 地图碰撞系统已启用');
+            // 获取地图的所有图层名称
+            const layerNames = map.layers.map(l => l.name);
+            console.log(`🗺️ 地图包含图层: ${layerNames.join(', ')}`);
+            
+            // 按顺序创建所有图层
+            layerNames.forEach(name => {
+                const layer = map.createLayer(name, [tileset1, tileset2, tileset3], 0, 0);
+                if (layer) {
+                    this.mapLayers.push(layer);
+                    console.log(`✅ 已创建图层: ${name}`);
+                }
+            });
+            
+            // 设置碰撞层（通常是最上层或指定的图层）
+            const topLayer = this.mapLayers[this.mapLayers.length - 1];
+            if (topLayer) {
+                topLayer.setCollisionFromCollisionGroup();
+                this.collisionLayer = topLayer;
+                console.log('✅ 地图碰撞系统已启用（最上层）');
             }
             
             // 更新物理世界和相机边界
