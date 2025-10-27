@@ -45,13 +45,16 @@
             }, 500);
         });
 
-        // 加载地图图块 - 3个tileset
+        // 加载地图图块 - 3个tileset（所有地图共用）
         this.load.image('tiles1', 'https://raw.githubusercontent.com/zltbrm/assets/master/%E5%9C%B0%E5%9B%BE%E5%85%83%E4%BB%B6/zzjbdt1.png');
         this.load.image('tiles2', 'https://raw.githubusercontent.com/zltbrm/assets/master/%E5%9C%B0%E5%9B%BE%E5%85%83%E4%BB%B6/zzjbdt2%20XII.png');
         this.load.image('tiles3', 'https://raw.githubusercontent.com/zltbrm/assets/master/%E5%9C%B0%E5%9B%BE%E5%85%83%E4%BB%B6/%E9%87%8D-%E8%A3%85%E5%9F%8E%E9%95%871.png');
 
-        // 加载地图JSON数据
+        // 加载拉多镇地图JSON数据（内嵌数据）
         this.load.tilemapTiledJSON('map', mapData);
+        
+        // 🗺️ 加载修车店地图JSON数据（从URL）
+        this.load.tilemapTiledJSON('map_garage', 'https://raw.githubusercontent.com/zltbrm/assets/master/map/%E6%8B%89%E5%A4%9A%E9%95%87-%E4%BF%AE%E8%BD%A6%E5%BA%97.json');
 
         // 加载主角精灵图 (4向4帧：每行4帧，共4行)
         this.load.spritesheet('player', 'https://raw.githubusercontent.com/zltbrm/assets/master/%E8%A1%8C%E8%B5%B0%E5%9B%BE/%E4%B8%BB%E8%A7%921.png', {
@@ -99,55 +102,103 @@
     }
 
     function create() {
-        // 使用内嵌的地图数据创建地图
-        const map = this.make.tilemap({ key: 'map' });
+        // 🗺️ 初始化当前地图为拉多镇
+        this.currentMapKey = 'map'; // 'map' = 拉多镇, 'map_garage' = 修车店
+        this.currentMapName = '拉多镇';
+        
+        // 🗺️ 创建地图加载函数
+        this.loadMap = function(mapKey, mapName, layerName, spawnX, spawnY) {
+            console.log(`🗺️ 正在加载地图: ${mapName}`);
+            
+            // 销毁旧地图和图层
+            if (this.collisionLayer) {
+                this.collisionLayer.destroy();
+                this.collisionLayer = null;
+            }
+            if (this.currentMap) {
+                this.currentMap.destroy();
+                this.currentMap = null;
+            }
+            
+            // 创建新地图
+            const map = this.make.tilemap({ key: mapKey });
+            
+            // 添加图块集
+            const tileset1 = map.addTilesetImage('zzjbdt1', 'tiles1');
+            const tileset2 = map.addTilesetImage('zzjbdt2 XII', 'tiles2');
+            const tileset3 = map.addTilesetImage('重-装城镇1', 'tiles3');
+            
+            // 创建图层（根据不同地图使用不同的图层名）
+            const layer = map.createLayer(layerName, [tileset1, tileset2, tileset3], 0, 0);
+            
+            if (layer) {
+                // 设置碰撞
+                layer.setCollisionFromCollisionGroup();
+                this.collisionLayer = layer;
+                
+                console.log('✅ 地图碰撞系统已启用');
+            }
+            
+            // 更新物理世界和相机边界
+            this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+            this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+            
+            // 移动玩家到新位置
+            if (spawnX !== undefined && spawnY !== undefined) {
+                this.player.setPosition(spawnX, spawnY + 12);
+            }
+            
+            // 存储当前地图信息
+            this.currentMap = map;
+            this.currentMapKey = mapKey;
+            this.currentMapName = mapName;
+            
+            // 重新设置碰撞
+            if (this.collisionLayer) {
+                this.physics.add.collider(this.player, this.collisionLayer);
+            }
+            
+            console.log(`✅ 地图加载完成: ${mapName}`);
+        };
+        
+        // 🗺️ 地图切换函数
+        this.switchMap = function(targetMapName, spawnKey) {
+            console.log(`🔄 切换到地图: ${targetMapName}, 出生点: ${spawnKey}`);
+            
+            let mapKey, layerName, spawnX, spawnY;
+            
+            if (targetMapName === '拉多镇') {
+                mapKey = 'map';
+                layerName = '图块层 1';
+                
+                // 根据出生点设置位置
+                if (spawnKey === 'from_garage') {
+                    // 从修车店出来的位置（修车店门口）
+                    spawnX = 20 * 32;
+                    spawnY = 15 * 32;
+                } else {
+                    // 默认出生点
+                    spawnX = 12 * 32;
+                    spawnY = 10 * 32;
+                }
+            } else if (targetMapName === '拉多镇-修车店') {
+                mapKey = 'map_garage';
+                layerName = '下层';
+                
+                // 从拉多镇进入的位置（门口）
+                spawnX = 8 * 32;
+                spawnY = 11 * 32;
+            } else {
+                console.error(`❌ 未知的地图: ${targetMapName}`);
+                return;
+            }
+            
+            // 加载新地图
+            this.loadMap(mapKey, targetMapName, layerName, spawnX, spawnY);
+        };
 
-        // 添加图块集 - 根据JSON中的定义，需要添加3个tileset
-        // firstgid: 1 - zzjbdt1
-        // firstgid: 601 - zzjbdt2 XII  
-        // firstgid: 2489 - 重-装城镇1
-        const tileset1 = map.addTilesetImage('zzjbdt1', 'tiles1');
-        const tileset2 = map.addTilesetImage('zzjbdt2 XII', 'tiles2');
-        const tileset3 = map.addTilesetImage('重-装城镇1', 'tiles3');
-
-        // 创建图层 - 传入所有tileset
-        const layer = map.createLayer('图块层 1', [tileset1, tileset2, tileset3], 0, 0);
-
-        if (layer) {
-            // 不进行缩放，保持1:1显示，这样计算更简单准确
-            // layer.setScale(2);  // ❌ 取消缩放
-
-            // ==================== 碰撞设置 ====================
-            // 使用 Tiled Collision Editor 设置的碰撞体积
-            // Phaser 会自动读取 tileset 中每个 tile 的 objectgroup 碰撞数据
-
-            // 方法1: 使用 Tiled 的 Collision Editor（推荐）⭐
-            // 设置所有在 Tiled 中定义了碰撞体积的 tile
-            // 只需要调用 setCollisionFromCollisionGroup() 即可
-            layer.setCollisionFromCollisionGroup();
-
-            // 方法2: 如果你还想使用属性方式，可以同时启用
-            // layer.setCollisionByProperty({ collides: true });
-
-            // 方法3: 或者手动指定特定的 tile ID
-            // const collisionTileIds = [605, 606, ...]; // 你在 Tiled 中设置了碰撞的 tile ID
-            // layer.setCollision(collisionTileIds);
-
-            // 存储图层供后续使用
-            this.collisionLayer = layer;
-
-            // 调试：显示碰撞区域（开发时使用）
-            // const debugGraphics = this.add.graphics().setAlpha(0.5);
-            // layer.renderDebug(debugGraphics, {
-            //   tileColor: null, // 普通 tile 不显示颜色
-            //   collidingTileColor: new Phaser.Display.Color(243, 134, 48, 200), // 碰撞 tile 显示橙色
-            //   faceColor: new Phaser.Display.Color(40, 39, 37, 255) // 碰撞面显示深色
-            // });
-
-            console.log('✅ 碰撞系统已启用，使用 Tiled Collision Editor 数据');
-        } else {
-            console.error('Failed to create map layer');
-        }
+        // 使用内嵌的地图数据创建初始地图（拉多镇）
+        this.loadMap('map', '拉多镇', '图块层 1', 12 * 32, 10 * 32);
 
         // ==================== 创建玩家 ====================
         // 人物规格：32x32px的sprite，每次移动32px（对齐到2个16px的tile）
@@ -1200,6 +1251,9 @@
                     this.recordPlayerPosition();
 
                     this.checkBattle();
+                    
+                    // 🗺️ 检查传送点
+                    this.checkPortal();
                 }
             });
         }
@@ -1236,6 +1290,63 @@
             window.startBattle(enemyData);
         } else {
             console.error('❌ window.startBattle 未定义');
+        }
+    };
+
+    // 🗺️ 检查传送点
+    Phaser.Scene.prototype.checkPortal = function () {
+        // 计算玩家当前的tile坐标
+        const playerTileX = Math.floor(this.player.x / 16);
+        const playerTileY = Math.floor(this.player.y / 16);
+        
+        console.log(`🗺️ 检查传送点: 玩家位置 (${playerTileX}, ${playerTileY}), 地图: ${this.currentMapName}`);
+        
+        // 定义传送点配置
+        const portals = {
+            '拉多镇': [
+                {
+                    name: '修车店入口',
+                    x: 20, // tile坐标（16px为单位）
+                    y: 16,
+                    width: 2,
+                    height: 1,
+                    targetMap: '拉多镇-修车店',
+                    targetSpawn: 'from_town'
+                }
+            ],
+            '拉多镇-修车店': [
+                {
+                    name: '修车店出口',
+                    x: 7, // tile坐标
+                    y: 12,
+                    width: 3,
+                    height: 1,
+                    targetMap: '拉多镇',
+                    targetSpawn: 'from_garage'
+                }
+            ]
+        };
+        
+        // 获取当前地图的传送点
+        const currentPortals = portals[this.currentMapName];
+        if (!currentPortals) {
+            console.log('🗺️ 当前地图没有传送点配置');
+            return;
+        }
+        
+        // 检查每个传送点
+        for (const portal of currentPortals) {
+            if (playerTileX >= portal.x && playerTileX < portal.x + portal.width &&
+                playerTileY >= portal.y && playerTileY < portal.y + portal.height) {
+                console.log(`🚪 触发传送点: ${portal.name}`);
+                
+                // 延迟一点再切换地图，让动画播放完成
+                this.time.delayedCall(100, () => {
+                    this.switchMap(portal.targetMap, portal.targetSpawn);
+                });
+                
+                break;
+            }
         }
     };
 
