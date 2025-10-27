@@ -142,8 +142,8 @@
             this.physics.world.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
             this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
             
-            // 移动玩家到新位置
-            if (spawnX !== undefined && spawnY !== undefined) {
+            // 移动玩家到新位置（只有在玩家已创建时才执行）
+            if (this.player && spawnX !== undefined && spawnY !== undefined) {
                 this.player.setPosition(spawnX, spawnY + 12);
             }
             
@@ -152,8 +152,8 @@
             this.currentMapKey = mapKey;
             this.currentMapName = mapName;
             
-            // 重新设置碰撞
-            if (this.collisionLayer) {
+            // 重新设置碰撞（只有在玩家已创建时才执行）
+            if (this.player && this.collisionLayer) {
                 this.physics.add.collider(this.player, this.collisionLayer);
             }
             
