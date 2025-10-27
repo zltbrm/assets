@@ -270,6 +270,7 @@
         this.player.setSize(16, 16);
         this.player.setOffset(8, 16);
         this.player.setCollideWorldBounds(true);
+        this.player.setDepth(1000); // 🎨 设置玩家深度，确保在地图图层上方
         this.player.characterIndex = 0; // 对应characters[0]
         // 🚗 [战车系统已禁用] 移除战车相关字段
         // this.player.inTank = false;
@@ -289,6 +290,7 @@
         this.follower1.setSize(16, 16);
         this.follower1.setOffset(8, 16);
         this.follower1.setCollideWorldBounds(true);
+        this.follower1.setDepth(1000); // 🎨 设置队友深度
         this.follower1.characterIndex = 1; // 对应characters[1]
         // 🚗 [战车系统已禁用] 移除战车相关字段
         // this.follower1.inTank = false;
@@ -308,6 +310,7 @@
         this.follower2.setSize(16, 16);
         this.follower2.setOffset(8, 16);
         this.follower2.setCollideWorldBounds(true);
+        this.follower2.setDepth(1000); // 🎨 设置队友深度
         this.follower2.characterIndex = 2; // 对应characters[2]
         // 🚗 [战车系统已禁用] 移除战车相关字段
         // this.follower2.inTank = false;
@@ -758,6 +761,7 @@
             // 创建NPC精灵（32x32px，原始大小）
             npc.sprite = this.physics.add.sprite(npcPixelX, npcPixelY + 12, npc.spriteKey, 0);
             npc.sprite.setImmovable(true);
+            npc.sprite.setDepth(1000); // 🎨 设置NPC深度，确保在地图图层上方
 
             // ✅ 设置NPC的碰撞体积（与玩家相同）
             npc.sprite.setSize(16, 16);       // 碰撞体16x16
